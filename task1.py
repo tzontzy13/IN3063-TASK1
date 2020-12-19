@@ -443,6 +443,7 @@ print("time     - Dijkstra ", datetime.datetime.now() - begin_time)
 print("distance - Dijkstra ", distance)
 
 print('\n')
+print("ACO started")
 # compute distance with ant colony
 begin_time = datetime.datetime.now()
 distance3 = game.ant_colony(grid, (0, 0))
