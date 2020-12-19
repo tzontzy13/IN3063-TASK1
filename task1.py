@@ -193,15 +193,15 @@ class Game:
 
         # initialize pheromones (similar to weights from neural networks)
         pheromones = np.ones(shape=(row, col))
-        # constant that gets divided by a distance 
+        # constant that gets divided by a distance when updating pheromones
         # used for updateing pheromones
-        q_constant = 1.5
+        q_constant = 1.1
         # constant that "fades out" the pheromones
-        evaporation_rate = 0.7
+        evaporation_rate = 0.55
 
         # set number of generations (epochs) and ants
-        ants = 256*2
-        gens = 32
+        ants = 256*3+32+8+16+32+128+32
+        gens = 32+16+8+4+8
 
         # initial shortest path
         shortest_path = 99999999
@@ -210,7 +210,7 @@ class Game:
 
         # selects a node for the ant to visit
         def roulette_select(current_node, nodes_to_check):
-            # nodes to check contains the neighbours of current node that meet a specific criteria
+            # nodes to check contains the neighbours of current node that meet a specific criteria (exist, not in current path)
             # n = probability
             n = np.random.uniform(0, 1)
 
@@ -226,6 +226,8 @@ class Game:
                 # add it to nodes
                 nodes.append(node)
                 # create activation (a) based on distance and pheromones
+                # if the pheromones are low, the activation will be low
+                # if the distance is low, the activation will be high
                 if(distance(current_node, node) != 0):
                     a = (1 / distance(current_node, node)) * \
                         pheromone(current_node, node)
@@ -238,6 +240,7 @@ class Game:
 
             prob = np.array(prob, dtype='float64')
             # divide the probability list by the sum
+            # prob now contains the probability of each node to be picked
             # sum of probability list is now 1
             prob = prob / s
 
@@ -266,6 +269,7 @@ class Game:
         # update pheromones after each generation
         def update_pheromones(paths):
             # apply evaporation rate
+            # the pheromones "lose" power after each generation
             new_pheromones = (1 - evaporation_rate) * pheromones
 
             # update each pheromone manually
@@ -275,9 +279,12 @@ class Game:
                     i = node[0]
                     j = node[1]
 
+                    # i changed this because I cant divide by 0
                     if (dist == 0):
-                        dist = 0.7
+                        dist = 0.75
 
+                    # update pheromones at a specific node
+                    # pheromone after evaporation + a constant divided by distance traveled by the ant
                     new_node_pher = new_pheromones[i][j] + (q_constant / dist)
                     new_pheromones[i][j] = new_node_pher
 
@@ -310,9 +317,12 @@ class Game:
         def update_shortest_path(paths):
 
             current_shortest = shortest_path
-
+            # check each valid path
+            # i say valid because sometimes the ant doesnt reach the end node
+            #  that path is not added in the paths list
             for hist, dist in paths:
                 if dist < current_shortest:
+                    # update shortest distance
                     current_shortest = dist
 
             return current_shortest
@@ -333,7 +343,7 @@ class Game:
                 # path of ant
                 path = set()
                 path.add(current_node)
-
+                # path of ant, in the order of nodes
                 path_in_order = []
                 path_in_order.append(current_node)
 
@@ -349,7 +359,7 @@ class Game:
                     next_node = roulette_select(current_node, nodes_to_check)
                     # compute distance to next node from START of path to next node
                     current_distance += distance(current_node, next_node)
-                    # create a new set of nodes to check when in the next node
+                    # create a new set of nodes to check in the next while loop
                     nodes_to_check = update_nodes_to_check(next_node, path)
                     # set current node to next node
                     current_node = next_node
@@ -420,28 +430,28 @@ grid9 = [[0, 6, 4, 5],
          [9, 6, 1, 2],
          [2, 3, 4, 5]]
 
-game = Game(13, 13)
+game = Game(14, 14)
 grid_genrated = game.generateGrid()
 
-grid = grid7
+grid = grid_genrated
 
 print('\n')
 # compute distance with Dijkstra
 begin_time = datetime.datetime.now()
 distance = game.dijkstra(grid, (0, 0))
-print("time   -   Dijkstra ", datetime.datetime.now() - begin_time)
+print("time     - Dijkstra ", datetime.datetime.now() - begin_time)
 print("distance - Dijkstra ", distance)
 
 print('\n')
 # compute distance with ant colony
 begin_time = datetime.datetime.now()
 distance3 = game.ant_colony(grid, (0, 0))
-print("time   -   ant_colony ", datetime.datetime.now() - begin_time)
+print("time     - ant_colony ", datetime.datetime.now() - begin_time)
 print("distance - ant_colony ", distance3)
 
 print('\n')
 # compute distance with BFS
 begin_time = datetime.datetime.now()
 distance2 = game.BFS(grid, (0, 0))
-print("time   -   BFS ", datetime.datetime.now() - begin_time)
+print("time     - BFS ", datetime.datetime.now() - begin_time)
 print("distance - BFS ", distance2)
