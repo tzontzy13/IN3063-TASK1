@@ -6,8 +6,9 @@ import math
 # makes script as efficent as possible
 import datetime
 
-
 class Game:
+
+    # GAMEMODE IS NUMBER ON THE CELL IS COST
 
     def __init__(self, height, width):
 
@@ -22,13 +23,23 @@ class Game:
         # returns the generated grid
         return grid
 
+    # Wikipedia. 2020.
+    # Dijkstra's algorithm - Wikipedia.
+    # [ONLINE] Available at: https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm#Algorithm
+    # [Accessed 19 December 2020].
+
+    # Vaidehi Joshi. 2017.
+    # Finding The Shortest Path, With A Little Help From Dijkstra | by Vaidehi Joshi | basecs | Medium.
+    # [ONLINE] Available at: https://medium.com/basecs/finding-the-shortest-path-with-a-little-help-from-dijkstra-613149fbdc8e
+    # [Accessed 19 December 2020].
+
     def dijkstra(self, grid, start):
 
         # row and col are the lengths of our 2d array (grid is the 2d array)
         row = len(grid)
         col = len(grid[0])
 
-        # cost to each "node" FROM STARTING NODE!!!!!!!!!!. updates as we go through "nodes"
+        # cost to each "node" FROM STARTING NODE!. updates as we go through "nodes"
         # 2d array mirroring our grid
         # at first, the cost to get to each node is 99999999 (a lot)
         distance = np.full((row, col), 99999999)
@@ -128,6 +139,11 @@ class Game:
         # returning distance to bottom right cornet of 2d array
         return distance[row-1][col-1]
 
+    # Wikipedia. 2020.
+    # Breadth-first search - Wikipedia.
+    # [ONLINE] Available at: https://en.wikipedia.org/wiki/Breadth-first_search
+    # [Accessed 19 December 2020].
+
     def BFS(self, grid, start):
 
         # BFS is similar to dijskras except it only checks south and east and
@@ -181,6 +197,26 @@ class Game:
         
         # return distance to bottom right corner (calculated only with right and down movements)
         return distance[row-1][col-1]
+
+    # Ali Mirjalili. 2018.
+    # Inspiration of Ant Colony Optimization - YouTube.
+    # [ONLINE] Available at: https://www.youtube.com/watch?v=1qpvpOHGRqA&ab_channel=AliMirjalili
+    # [Accessed 19 December 2020].
+
+    # Ali Mirjalili. 2018.
+    # How the Ant Colony Optimization algorithm works - YouTube.
+    # [ONLINE] Available at: https://www.youtube.com/watch?v=783ZtAF4j5g&t=235s&ab_channel=AliMirjalili
+    # [Accessed 19 December 2020].
+
+    # Wikipedia. 2020.
+    # Ant colony optimization algorithms - Wikipedia.
+    # [ONLINE] Available at: https://en.wikipedia.org/wiki/Ant_colony_optimization_algorithms#Algorithm_and_formulae
+    # [Accessed 19 December 2020].
+
+    # Wikipedia. 2020.
+    # Fitness proportionate selection - Wikipedia.
+    # [ONLINE] Available at: https://en.wikipedia.org/wiki/Fitness_proportionate_selection
+    # [Accessed 19 December 2020].
 
     def ant_colony(self, grid, start):
 
