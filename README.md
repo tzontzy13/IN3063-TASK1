@@ -1,9 +1,6 @@
 # IN3063-TASK1
 Individual task 1 of Maths for AI
 
-14 Dec update:
-Hi Michael!!!
+Code is found in either task1.py or task1.ipynb
 
-I just finished all 3 algorithms.
-Code is not yet clean, commented or REFERENCED
-Will do that this week
+Developed using python 3.7.9
