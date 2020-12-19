@@ -79,11 +79,11 @@ class Game:
             # get the i and j of smallest distance unvisited node
             i, j = smallestUnvisited(distance, nodesToCheck)
 
-            # for south and east, we check if there exists an unvisited node
+            # for south, east, norths, west we check if there exists an unvisited node
             # we then compare the current distance for that node with
             # the distance of the current node plus the cost
-            # (cost is the number of the node we are currently in)
-            # if the current distance is greater, we change it to the lower value
+            # (cost is the number of the next node)
+            # if the current distance is greater, i change it to the lower value i just computed
 
             # south
             # if there exists a node to the south that is UNVISITED
@@ -91,7 +91,6 @@ class Game:
                 # add node to set, to be checked later when we compute the smallest value form unvisited nodes
                 nodesToCheck.add((i+1, j))
                 # compute distance
-                # abs(grid[i][j] - )
                 if distance[i+1][j] > grid[i+1][j] + distance[i][j]:
                     distance[i+1][j] = grid[i+1][j] + distance[i][j]
 
@@ -126,14 +125,14 @@ class Game:
             # remove current node from nodesToCheck, so we dont check it again, causing errors in the flow
             nodesToCheck.remove((i, j))
 
-        #print("grid: \n", grid)
-        #print("visited: \n", visited)
-        print("distance: \n", distance)
-
         # returning distance to bottom right cornet of 2d array
         return distance[row-1][col-1]
 
     def BFS(self, grid, start):
+
+        # BFS is similar to dijskras except it only checks south and east and
+        # doesnt have a way of picking which node to visit next
+        # it always picks the first node in the queue
 
         # row and col are the lengths of our 2d array (grid is the 2d array)
         row = len(grid)
@@ -161,29 +160,11 @@ class Game:
             i, j = queue[0]
             # remove first node from queue
             queue.pop(0)
+            # mark it as visited
             visited[i][j] = 1
 
-            # # if North node exists
-            # if(i-1 >= 0 and visited[i-1][j] == 0 and (i-1,j) not in queue):
-            #     # print("ce plm north")
-            #     # add node to queue
-            #     queue.append((i-1, j))
-            #     # compute distance
-            #     if distance[i-1][j] > grid[i-1][j] + distance[i][j]:
-            #         distance[i-1][j] = grid[i-1][j] + distance[i][j]
-
-            # # if West node exists
-            # if(j-1 >= 0 and visited[i][j-1] == 0 and (i,j-1) not in queue):
-            #     # print("ce plm west")
-            #     # add node to queue
-            #     queue.append((i, j-1))
-            #     # compute distance
-            #     if distance[i][j-1] > grid[i][j-1] + distance[i][j]:
-            #         distance[i][j-1] = grid[i][j-1] + distance[i][j]
-
-            # if South node exists
+            # if South node exists, is not visited and not already in the queue
             if(i+1 < row and visited[i+1][j] == 0 and (i+1,j) not in queue):
-                # print("ce plm south")
                 # add node to queue
                 queue.append((i+1, j))
                 # compute distance
@@ -192,103 +173,104 @@ class Game:
 
             # if East node exists
             if(j+1 < col and visited[i][j+1] == 0 and (i,j+1) not in queue):
-                # print("ce plm east")
                 # add node to queue
                 queue.append((i, j+1))
                 # compute distance
                 if distance[i][j+1] > grid[i][j+1] + distance[i][j]:
                     distance[i][j+1] = grid[i][j+1] + distance[i][j]
-
-            # print("q:  ",queue)
-        print(distance)
         
-        # return distance to bottom right corner
+        # return distance to bottom right corner (calculated only with right and down movements)
         return distance[row-1][col-1]
 
     def ant_colony(self, grid, start):
 
+        # row and col are the lengths of our 2d array (grid is the 2d array)
         row = len(grid)
         col = len(grid[0])
 
+        # end node
         end = (row - 1, col - 1)
 
+        # initialize pheromones (similar to weights from neural networks)
         pheromones = np.ones(shape=(row, col))
+        # constant that gets divided by a distance 
+        # used for updateing pheromones
         q_constant = 1.5
+        # constant that "fades out" the pheromones
         evaporation_rate = 0.7
 
+        # set number of generations (epochs) and ants
         ants = 256*2
         gens = 32
 
+        # initial shortest path
         shortest_path = 99999999
 
         # helper functions
 
+        # selects a node for the ant to visit
         def roulette_select(current_node, nodes_to_check):
-
+            # nodes to check contains the neighbours of current node that meet a specific criteria
+            # n = probability
             n = np.random.uniform(0, 1)
 
+            # sum of all activations (a)
             s = 0
 
+            # list for nodes and probability of nodes
             prob = []
             nodes = []
 
+            # for each node
             for node in nodes_to_check:
+                # add it to nodes
                 nodes.append(node)
+                # create activation (a) based on distance and pheromones
                 if(distance(current_node, node) != 0):
                     a = (1 / distance(current_node, node)) * \
                         pheromone(current_node, node)
                 else:
                     a = pheromone(current_node, node)
+                # add activation to sum
                 s += a
+                # add activation to probability list
                 prob.append(a)
 
             prob = np.array(prob, dtype='float64')
+            # divide the probability list by the sum
+            # sum of probability list is now 1
             prob = prob / s
 
-            # cumulative_sum = []
-            # total = 0
-
-            # for i in range(len(prob)):
-            #     total += prob[i]
-            #     cumulative_sum[i] = total
-
-            # for i in range(len(cumulative_sum)):
-            #     if(n < cumulative_sum[i]):
-            #         return_node = nodes[i]
-
+            # choose a node based on the probability list generated above and n
             cumulative_sum = 0
             chosen = 0
-
-            # for i in prob:
-            #     if cumulative_sum < n:
-            #         chosen = i
-            #     cumulative_sum += i
-
+            # developed this code using the pseudocode from Wikipedia and a YouTube video
+            # adapted pseudocode for my project
             for i in range(len(prob)):
                 if cumulative_sum < n:
                     chosen = i
                 cumulative_sum += prob[i]
 
-            # print('\n')
-            # print("Probs are: ", prob)
-            # print("Nodes: ", nodes)
-            # print("Chosen: ", nodes[chosen])
-
             return nodes[chosen]
 
+        # returns the pheromone levels between 2 points
         def pheromone(p1, p2):
             pher = pheromones[p2[0]][p2[1]]
             return pher
 
+        # distance between 2 points using "The time spent on a cell is the number on this cell"
         def distance(p1, p2):
             dist = grid[p2[0]][p2[1]]
             return dist
 
+        # update pheromones after each generation
         def update_pheromones(paths):
+            # apply evaporation rate
             new_pheromones = (1 - evaporation_rate) * pheromones
 
+            # update each pheromone manually
+            # formula found in Wikipedia
             for hist, dist in paths:
-                # print("hist: ", hist, " dist : ", dist)
                 for node in hist:
                     i = node[0]
                     j = node[1]
@@ -299,96 +281,94 @@ class Game:
                     new_node_pher = new_pheromones[i][j] + (q_constant / dist)
                     new_pheromones[i][j] = new_node_pher
 
-            # print(new_pheromones)
+            # return pheromones
             return new_pheromones
 
+        # starting from node, return a set of new nodes for the the ant to choose from
         def update_nodes_to_check(node, path):
-
-            # print('\n')
-            # print("untc node: ", node)
-            # print("untc path: ", path)
 
             i = node[0]
             j = node[1]
 
-            # print("i ", i)
-            # print("j ", j)
-
             new_nodes_to_check = set()
 
+            # if node exists
+            # if node not already visited
             if((i+1 < row) and ((i+1, j) not in path)):
-                # print("south")
                 new_nodes_to_check.add((i+1, j))
             if((i-1 >= 0) and ((i-1, j) not in path)):
-                # print("north")
                 new_nodes_to_check.add((i-1, j))
             if((j+1 < col) and ((i, j+1) not in path)):
-                # print("east")
                 new_nodes_to_check.add((i, j+1))
             if((j-1 >= 0) and ((i, j-1) not in path)):
-                # print("west")
                 new_nodes_to_check.add((i, j-1))
 
-            # print("new nodes to check: ", new_nodes_to_check)
+            # return the new set of nodes for roulette selection
             return new_nodes_to_check
 
+        # if a shorter path exists, update the distance of the shortest path
         def update_shortest_path(paths):
-
-            # print(shortest_path)
 
             current_shortest = shortest_path
 
             for hist, dist in paths:
-                # print("dist: ", dist)
                 if dist < current_shortest:
                     current_shortest = dist
 
             return current_shortest
 
+        # for each generation
         for g in range(gens):
 
+            # list for storing paths of that generation
             paths = []
 
+            # for each ant
             for a in range(ants):
 
+                # start point
                 current_node = (0, 0)
                 current_distance = 0
 
+                # path of ant
                 path = set()
                 path.add(current_node)
 
                 path_in_order = []
                 path_in_order.append(current_node)
 
+                # nodes to check with roulette selection
                 nodes_to_check = set()
 
                 nodes_to_check.add((1, 0))
                 nodes_to_check.add((0, 1))
 
+                # if there are nodes to check and the current node is not the end node
                 while (len(nodes_to_check) != 0) and (current_node != end):
-
+                    # select next node
                     next_node = roulette_select(current_node, nodes_to_check)
-
+                    # compute distance to next node from START of path to next node
                     current_distance += distance(current_node, next_node)
-
+                    # create a new set of nodes to check when in the next node
                     nodes_to_check = update_nodes_to_check(next_node, path)
-
+                    # set current node to next node
                     current_node = next_node
-
+                    # add node to path
                     path.add(next_node)
-
                     path_in_order.append(next_node)
 
+                # the ant doesnt always reach the end node (gets lost or trapped), so we check if it found a viable path before adding to paths list
                 if(end in path):
                     paths.append([path_in_order, current_distance])
 
+            # update pheromones and shortest path for next generation
             pheromones = update_pheromones(paths)
             shortest_path = update_shortest_path(paths)
 
+        # returns the shortest path to end node
         return shortest_path
 
 # testing starts here
-
 
 grid2 = [[1, 9, 9, 9],
          [1, 9, 9, 9],
@@ -443,7 +423,7 @@ grid9 = [[0, 6, 4, 5],
 game = Game(13, 13)
 grid_genrated = game.generateGrid()
 
-grid = grid2
+grid = grid7
 
 print('\n')
 # compute distance with Dijkstra
