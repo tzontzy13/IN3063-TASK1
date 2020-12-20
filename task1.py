@@ -284,6 +284,17 @@ class Game:
             cumulative_sum = 0
             chosen = 0
             # developed this code using the pseudocode from Wikipedia and a YouTube video
+            
+            # Wikipedia. 2020.
+            # Fitness proportionate selection - Wikipedia.
+            # [ONLINE] Available at: https://en.wikipedia.org/wiki/Fitness_proportionate_selection
+            # [Accessed 19 December 2020].
+
+            # Ali Mirjalili. 2018.
+            # How the Ant Colony Optimization algorithm works - YouTube.
+            # [ONLINE] Available at: https://www.youtube.com/watch?v=783ZtAF4j5g&t=235s&ab_channel=AliMirjalili
+            # [Accessed 19 December 2020].
+            
             # adapted pseudocode for my project
             for i in range(len(prob)):
                 if cumulative_sum < n:
